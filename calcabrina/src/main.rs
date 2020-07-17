@@ -17,4 +17,5 @@ fn main() {
     });
 
     println!("ROM title: {}", rom.title());
+    println!("ROM description: {}", rom.description());
 }

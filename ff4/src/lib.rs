@@ -8,6 +8,7 @@ mod rom_map;
 
 pub struct Rom {
     data: Vec<u8>,
+    version: rom_map::Version,
 }
 
 impl Rom {
@@ -20,14 +21,15 @@ impl Rom {
 
         let hash = hex::encode(Sha256::new().chain(&data).finalize());
 
-        match &hash[..] {
-            rom_map::HASH_USA_REV_A => (),
-            _ => {
-                return Err("Unrecognized file".into());
-            }
+        if let Some(version) = rom_map::get_version(&hash) {
+            Ok(Rom { data, version })
+        } else {
+            Err("Unrecognized file".into())
         }
+    }
 
-        Ok(Rom { data })
+    pub fn description(&self) -> String {
+        rom_map::get_description(self.version)
     }
 
     pub fn title(&self) -> String {
