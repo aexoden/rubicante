@@ -15,9 +15,7 @@ impl Rom {
     pub fn new(filename: &str) -> Result<Rom, Box<dyn Error>> {
         let mut data = fs::read(filename)?;
 
-        if !validate_rom_size(&mut data) {
-            return Err("Invalid file size".into());
-        }
+        remove_header_if_present(&mut data);
 
         let hash = hex::encode(Sha256::new().chain(&data).finalize());
 
@@ -52,14 +50,9 @@ fn address_to_rom_offset(address: usize) -> usize {
     (bank << 15) + offset
 }
 
-fn validate_rom_size(data: &mut Vec<u8>) -> bool {
-    match data.len() {
-        1048576 => true,
-        1049088 => {
-            data.drain(..512);
-            true
-        }
-        _ => false,
+fn remove_header_if_present(data: &mut Vec<u8>) {
+    if data.len() % 1048576 == 512 {
+        data.drain(..512);
     }
 }
 
