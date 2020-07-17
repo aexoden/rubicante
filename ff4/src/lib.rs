@@ -2,6 +2,8 @@ use std::error::Error;
 use std::fs;
 use std::str;
 
+use sha2::{Digest, Sha256};
+
 mod rom_map;
 
 pub struct Rom {
@@ -14,6 +16,15 @@ impl Rom {
 
         if !validate_rom_size(&mut data) {
             return Err("Invalid file size".into());
+        }
+
+        let hash = hex::encode(Sha256::new().chain(&data).finalize());
+
+        match &hash[..] {
+            rom_map::HASH_USA_REV_A => (),
+            _ => {
+                return Err("Unrecognized file".into());
+            }
         }
 
         Ok(Rom { data })
@@ -41,8 +52,8 @@ fn address_to_rom_offset(address: usize) -> usize {
 
 fn validate_rom_size(data: &mut Vec<u8>) -> bool {
     match data.len() {
-        1048576 | 2097152 => true,
-        1049088 | 2097664 => {
+        1048576 => true,
+        1049088 => {
             data.drain(..512);
             true
         }
