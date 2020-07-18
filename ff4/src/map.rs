@@ -32,19 +32,24 @@ impl OutdoorTileset {
         let upper_values = rom.read_bytes(record::OUTDOOR_TILESET_UPPER_VALUES, map_index);
         let lower_values = rom.read_bytes(record::OUTDOOR_TILESET_LOWER_VALUES, map_index);
 
-        let mut tiles = Vec::with_capacity(TILES_PER_TILESET);
+        let tile_count = match map {
+            OutdoorMap::Moon => 158,
+            _ => TILES_PER_TILESET,
+        };
 
-        for i in 0..TILES_PER_TILESET {
-            let mut pixels = Vec::with_capacity(PIXELS_PER_TILE);
+        let tiles = (0..tile_count)
+            .map(|i| {
+                let mut pixels = Vec::with_capacity(PIXELS_PER_TILE);
 
-            for j in 0..(PIXELS_PER_TILE / 2) {
-                let lower_value = lower_values[i * 32 + j];
-                pixels.push(upper_values[i] + (lower_value & 0x0F));
-                pixels.push(upper_values[i] + (lower_value >> 4));
-            }
+                for j in 0..(PIXELS_PER_TILE / 2) {
+                    let lower_value = lower_values[i * 32 + j];
+                    pixels.push(upper_values[i] + (lower_value & 0x0F));
+                    pixels.push(upper_values[i] + (lower_value >> 4));
+                }
 
-            tiles.push(OutdoorTile { pixels })
-        }
+                OutdoorTile { pixels }
+            })
+            .collect();
 
         OutdoorTileset {
             palette: rom.read_palette(record::OUTDOOR_TILESET_PALETTE, map_index, 1),
