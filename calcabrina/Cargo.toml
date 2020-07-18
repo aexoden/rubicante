@@ -8,3 +8,4 @@ edition = "2018"
 
 [dependencies]
 ff4 = { path = "../ff4" }
+image = "0.23.7"
