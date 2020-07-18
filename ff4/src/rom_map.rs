@@ -14,6 +14,11 @@ pub(crate) mod record {
         length: 0x80,
     };
 
+    pub const OUTDOOR_TILESET_COMPOSITION: Record = Record {
+        address: 0x148000,
+        length: 0x200,
+    };
+
     pub const OUTDOOR_TILESET_UPPER_VALUES: Record = Record {
         address: 0x148600,
         length: 0x100,
