@@ -50,11 +50,11 @@ impl Map {
                         tilemap.push(encoded_tilemap[index] / 16 * 3 + 0x71);
                         tilemap.push(encoded_tilemap[index] / 16 * 3 + 0x72);
                     }
-                },
-                0xFF => { },
+                }
+                0xFF => {}
                 x if x < 0x80 => {
                     tilemap.push(x);
-                },
+                }
                 x => {
                     index += 1;
 
@@ -67,7 +67,11 @@ impl Map {
             index += 1;
         }
 
-        Map { height, width, tilemap }
+        Map {
+            height,
+            width,
+            tilemap,
+        }
     }
 }
 
@@ -127,13 +131,11 @@ impl OutdoorTileset {
         let composition_data = rom.read_bytes(record::OUTDOOR_TILESET_COMPOSITION, map_index);
 
         let composition = (0..COMPOSED_TILES_PER_TILESET)
-            .map(|i| {
-                TileComposition {
-                    upper_left: composition_data[i] as usize,
-                    upper_right: composition_data[COMPOSED_TILES_PER_TILESET + i] as usize,
-                    lower_left: composition_data[COMPOSED_TILES_PER_TILESET * 2 + i] as usize,
-                    lower_right: composition_data[COMPOSED_TILES_PER_TILESET * 3 + i] as usize,
-                }
+            .map(|i| TileComposition {
+                upper_left: composition_data[i] as usize,
+                upper_right: composition_data[COMPOSED_TILES_PER_TILESET + i] as usize,
+                lower_left: composition_data[COMPOSED_TILES_PER_TILESET * 2 + i] as usize,
+                lower_right: composition_data[COMPOSED_TILES_PER_TILESET * 3 + i] as usize,
             })
             .collect();
 
