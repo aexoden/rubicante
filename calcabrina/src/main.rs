@@ -39,6 +39,10 @@ fn dump_outdoor_tilesets(rom: &rom::Rom) -> Result<(), Box<dyn Error>> {
     dump_composed_outdoor_tileset(&rom, map::OutdoorMap::Underworld, "tileset-composed-underworld.png")?;
     dump_composed_outdoor_tileset(&rom, map::OutdoorMap::Moon, "tileset-composed-moon.png")?;
 
+    dump_outdoor_map(&rom, map::OutdoorMap::Overworld, "map-overworld.png")?;
+    dump_outdoor_map(&rom, map::OutdoorMap::Underworld, "map-underworld.png")?;
+    dump_outdoor_map(&rom, map::OutdoorMap::Moon, "map-moon.png")?;
+
     Ok(())
 }
 
@@ -49,6 +53,31 @@ fn draw_outdoor_tile(img: &mut RgbaImage, tileset: &map::OutdoorTileset, index: 
 
         img.put_pixel(x, y, tileset.palette[*palette_index as usize]);
     }
+}
+
+fn dump_outdoor_map(rom: &rom::Rom, map: map::OutdoorMap, filename: &str) -> Result<(), Box<dyn Error>> {
+    println!("Dumping map to {}...", filename);
+
+    let tileset = map::OutdoorTileset::new(&rom, map);
+    let map = map::Map::new_outdoor(&rom, map);
+
+    let mut img = RgbaImage::new((map.width * 16) as u32, (map.height * 16) as u32);
+
+    for i in 0..map.tilemap.len() {
+        let base_x = (i % map.width) * 16;
+        let base_y = (i / map.width) * 16;
+
+        let composition = &tileset.composition[map.tilemap[i] as usize];
+
+        draw_outdoor_tile(&mut img, &tileset, composition.upper_left, base_x, base_y);
+        draw_outdoor_tile(&mut img, &tileset, composition.upper_right, base_x + 8, base_y);
+        draw_outdoor_tile(&mut img, &tileset, composition.lower_left, base_x, base_y + 8);
+        draw_outdoor_tile(&mut img, &tileset, composition.lower_right, base_x + 8, base_y + 8);
+    }
+
+    img.save(filename)?;
+
+    Ok(())
 }
 
 fn dump_outdoor_tileset(

@@ -7,10 +7,68 @@ const PIXELS_PER_TILE: usize = 64;
 const COMPOSED_TILES_PER_TILESET: usize = 128;
 const TILES_PER_TILESET: usize = 256;
 
+#[derive(Copy, Clone)]
 pub enum OutdoorMap {
     Overworld,
     Underworld,
     Moon,
+}
+
+pub struct Map {
+    pub height: usize,
+    pub width: usize,
+    pub tilemap: Vec<u8>,
+}
+
+impl Map {
+    pub fn new_outdoor(rom: &rom::Rom, map: OutdoorMap) -> Map {
+        let height = match map {
+            OutdoorMap::Moon => 64,
+            _ => 256,
+        };
+
+        let width = height;
+
+        let tilemap_record = match map {
+            OutdoorMap::Overworld => record::OUTDOOR_TILEMAP_OVERWORLD,
+            OutdoorMap::Underworld => record::OUTDOOR_TILEMAP_UNDERWORLD,
+            OutdoorMap::Moon => record::OUTDOOR_TILEMAP_MOON,
+        };
+
+        let encoded_tilemap = rom.read_bytes(tilemap_record, 0);
+        let mut tilemap = Vec::with_capacity(width * height);
+
+        let mut index = 0;
+
+        while tilemap.len() < width * height {
+            match encoded_tilemap[index] {
+                0x00 | 0x10 | 0x20 | 0x30 => {
+                    tilemap.push(encoded_tilemap[index]);
+
+                    if let OutdoorMap::Overworld = map {
+                        tilemap.push(encoded_tilemap[index] / 16 * 3 + 0x70);
+                        tilemap.push(encoded_tilemap[index] / 16 * 3 + 0x71);
+                        tilemap.push(encoded_tilemap[index] / 16 * 3 + 0x72);
+                    }
+                },
+                0xFF => { },
+                x if x < 0x80 => {
+                    tilemap.push(x);
+                },
+                x => {
+                    index += 1;
+
+                    for _ in 0..(encoded_tilemap[index] as usize) + 1 {
+                        tilemap.push(x & 0x7F);
+                    }
+                }
+            }
+
+            index += 1;
+        }
+
+        Map { height, width, tilemap }
+    }
 }
 
 pub struct TileComposition {

@@ -1,4 +1,5 @@
 pub(crate) mod record {
+    #[derive(Copy, Clone)]
     pub struct Record {
         pub address: usize,
         pub length: usize,
@@ -7,6 +8,21 @@ pub(crate) mod record {
     pub const GAME_TITLE: Record = Record {
         address: 0x00FFC0,
         length: 21,
+    };
+
+    pub const OUTDOOR_TILEMAP_OVERWORLD: Record = Record {
+        address: 0x168480,
+        length: 0x4000,
+    };
+
+    pub const OUTDOOR_TILEMAP_UNDERWORLD: Record = Record {
+        address: 0x16C480,
+        length: 0x1D00,
+    };
+
+    pub const OUTDOOR_TILEMAP_MOON: Record = Record {
+        address: 0x16E180,
+        length: 0xA00,
     };
 
     pub const OUTDOOR_TILESET_PALETTE: Record = Record {
