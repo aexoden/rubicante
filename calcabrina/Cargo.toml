@@ -8,4 +8,6 @@ edition = "2018"
 
 [dependencies]
 ff4 = { path = "../ff4" }
+ggez = "0.5.1"
+ggez-goodies = "0.5.0"
 image = "0.23.7"
