@@ -4,3 +4,6 @@ members = [
 	"ff4",
 	"rubicante",
 ]
+
+[profile.dev]
+opt-level = 2
