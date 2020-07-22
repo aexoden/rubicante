@@ -9,6 +9,7 @@ use ggez::{Context, GameResult};
 use ff4::rom;
 
 pub mod config;
+pub mod util;
 
 mod input;
 mod scenes;

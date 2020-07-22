@@ -4,6 +4,7 @@ use ggez::graphics;
 use ggez::{Context, GameResult};
 use ggez_goodies::scene;
 use ggez_goodies::Point2;
+use log::info;
 
 use ff4::map;
 
@@ -253,6 +254,8 @@ impl scene::Scene<World, input::Event> for FieldScene {
     }
 
     fn input(&mut self, _world: &mut World, event: input::Event, _started: bool) {
+        info!("Input: {:?}", event);
+
         let reset_transform = match event {
             input::Event::Button(input::Button::ZoomIn) => {
                 self.zoom -= 1.0;

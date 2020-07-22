@@ -7,7 +7,10 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+chrono = "0.4"
+fern = { version = "0.5", features = ["colored"] }
 ff4 = { path = "../ff4" }
 ggez = "0.5.1"
 ggez-goodies = "0.5.0"
 image = "0.23.7"
+log = "0.4"
