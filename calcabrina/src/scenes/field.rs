@@ -176,7 +176,7 @@ impl FieldScene {
 }
 
 impl scene::Scene<World, input::Event> for FieldScene {
-    fn update(&mut self, world: &mut World, _ctx: &mut ggez::Context) -> scenes::Switch {
+    fn update(&mut self, world: &mut World, ctx: &mut ggez::Context) -> scenes::Switch {
         if self.movement_frames > 0 {
             self.movement_frames -= 1;
 
@@ -219,10 +219,10 @@ impl scene::Scene<World, input::Event> for FieldScene {
         }
 
         if self.done {
-            scene::SceneSwitch::Pop
-        } else {
-            scene::SceneSwitch::None
+            ggez::event::quit(ctx);
         }
+
+        scene::SceneSwitch::None
     }
 
     fn draw(&mut self, world: &mut World, ctx: &mut ggez::Context) -> GameResult {
