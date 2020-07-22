@@ -4,7 +4,7 @@ use ggez::graphics;
 use ggez::{Context, GameResult};
 use ggez_goodies::scene;
 use ggez_goodies::Point2;
-use log::info;
+use log::debug;
 
 use ff4::map;
 
@@ -254,7 +254,7 @@ impl scene::Scene<World, input::Event> for FieldScene {
     }
 
     fn input(&mut self, _world: &mut World, event: input::Event, started: bool) {
-        info!("Input: {:?} {}", event, started);
+        debug!("Input: {:?} {}", event, started);
 
         if started {
             let reset_transform = match event {

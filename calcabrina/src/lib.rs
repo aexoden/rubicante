@@ -5,6 +5,7 @@ use ggez::event;
 use ggez::graphics;
 use ggez::timer;
 use ggez::{Context, GameResult};
+use log::{error, info};
 
 use ff4::rom;
 
@@ -40,12 +41,12 @@ struct MainState {
 impl MainState {
     fn new(ctx: &mut Context, config: config::Config) -> Self {
         let rom = rom::Rom::new(&config.filename).unwrap_or_else(|err| {
-            println!("Error loading ROM file: {}", err);
+            error!("Error loading ROM file: {}", err);
             process::exit(1);
         });
 
-        println!("ROM title: {}", rom.title());
-        println!("ROM description: {}", rom.description());
+        info!("ROM title: {}", rom.title());
+        info!("ROM description: {}", rom.description());
 
         let world = world::World::new(&rom);
 
