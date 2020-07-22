@@ -1,6 +1,6 @@
-use std::env;
 use std::process;
 
+use clap::Clap;
 use log::error;
 
 use calcabrina::config;
@@ -11,10 +11,7 @@ fn main() {
         eprintln!("FATAL: Could not initialize logger: {}", err);
     });
 
-    let config = config::Config::new(env::args()).unwrap_or_else(|err| {
-        error!("Error while parsing arguments: {}", err);
-        process::exit(1);
-    });
+    let config = config::Config::parse();
 
     calcabrina::run(config).unwrap_or_else(|err| {
         error!("Error running application: {}", err);

@@ -8,6 +8,7 @@ edition = "2018"
 
 [dependencies]
 chrono = "0.4"
+clap = "3.0.0-beta.1"
 fern = { version = "0.5", features = ["colored"] }
 ff4 = { path = "../ff4" }
 ggez = "0.5.1"
