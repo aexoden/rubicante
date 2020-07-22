@@ -12,12 +12,6 @@ use crate::input;
 use crate::scenes;
 use crate::world::World;
 
-use crate::WINDOW_HEIGHT;
-use crate::WINDOW_WIDTH;
-
-const BASE_WINDOW_WIDTH: usize = 256;
-const BASE_WINDOW_HEIGHT: usize = 224;
-
 const FIELD_OF_VIEW: f32 = std::f32::consts::PI / 4.0;
 
 const TILE_ARRAY_SIZE: usize = 16 * 16;
@@ -63,13 +57,15 @@ pub struct FieldScene {
 
 impl FieldScene {
     pub fn new(_ctx: &mut ggez::Context, world: &mut World) -> Self {
+        let (window_width, window_height) = world.config.get_window_size();
+
         FieldScene {
             done: false,
             movement_direction: Direction::Up,
             movement_frames: 0,
             tile_cache: TileCache::new_outdoor(&world.tileset),
             theta: 0.0,
-            transform: vec![None; WINDOW_HEIGHT * WINDOW_WIDTH],
+            transform: vec![None; window_width * window_height],
             zoom: 0.0,
         }
     }
@@ -77,12 +73,15 @@ impl FieldScene {
 
 impl FieldScene {
     fn draw_outdoor_map(&mut self, world: &mut World, ctx: &mut Context) -> GameResult {
-        let mut img = vec![0; WINDOW_WIDTH * WINDOW_HEIGHT * 4];
+        let (base_window_width, base_window_height) = world.config.get_base_window_size();
+        let (window_width, window_height) = world.config.get_window_size();
 
-        let x_scale_factor = WINDOW_WIDTH as f32 / BASE_WINDOW_WIDTH as f32;
-        let y_scale_factor = WINDOW_HEIGHT as f32 / BASE_WINDOW_HEIGHT as f32;
+        let mut img = vec![0; window_width * window_height * 4];
 
-        let focal_distance = (BASE_WINDOW_HEIGHT as f32 / FIELD_OF_VIEW.tan()) / 2.0;
+        let x_scale_factor = window_width as f32 / base_window_width as f32;
+        let y_scale_factor = window_height as f32 / base_window_height as f32;
+
+        let focal_distance = (base_window_height as f32 / FIELD_OF_VIEW.tan()) / 2.0;
 
         let (scroll_x, scroll_y) = get_direction_delta(self.movement_direction);
 
@@ -108,19 +107,19 @@ impl FieldScene {
         )
         .unwrap();
 
-        for window_y in 0..WINDOW_HEIGHT {
-            for window_x in 0..WINDOW_WIDTH {
-                let index = window_x * 4 + window_y * WINDOW_WIDTH * 4;
+        for window_y in 0..window_height {
+            for window_x in 0..window_width {
+                let index = window_x * 4 + window_y * window_width * 4;
 
-                let (target_x, target_y) = match self.transform[window_x + window_y * WINDOW_WIDTH]
+                let (target_x, target_y) = match self.transform[window_x + window_y * window_width]
                 {
                     Some((target_x, target_y)) => (target_x, target_y),
                     None => {
                         let x = ((window_x as f32 + 0.5) / x_scale_factor)
-                            - (BASE_WINDOW_WIDTH as f32) / 2.0;
+                            - (base_window_width as f32) / 2.0;
 
                         let y = ((window_y as f32 + 0.5) / y_scale_factor)
-                            - (BASE_WINDOW_HEIGHT as f32) / 2.0;
+                            - (base_window_height as f32) / 2.0;
 
                         let alpha = (x / focal_distance).atan();
                         let beta = (y / focal_distance).atan();
@@ -132,7 +131,7 @@ impl FieldScene {
                             * (target_y * (-self.theta).sin() + focal_distance + self.zoom)
                             / alpha.cos();
 
-                        self.transform[window_x + window_y * WINDOW_WIDTH] =
+                        self.transform[window_x + window_y * window_width] =
                             Some((target_x, target_y));
 
                         (target_x, target_y)
@@ -167,7 +166,7 @@ impl FieldScene {
         }
 
         let img =
-            graphics::Image::from_rgba8(ctx, WINDOW_WIDTH as u16, WINDOW_HEIGHT as u16, &img)?;
+            graphics::Image::from_rgba8(ctx, window_width as u16, window_height as u16, &img)?;
 
         let params = graphics::DrawParam::default().dest(Point2::new(0.0, 0.0));
 
@@ -226,13 +225,15 @@ impl scene::Scene<World, input::Event> for FieldScene {
     }
 
     fn draw(&mut self, world: &mut World, ctx: &mut ggez::Context) -> GameResult {
+        let (window_width, window_height) = world.config.get_window_size();
+
         self.draw_outdoor_map(world, ctx)?;
 
         let circle = graphics::Mesh::new_circle(
             ctx,
             graphics::DrawMode::fill(),
             Point2::new(0.0, 0.0),
-            17.0,
+            8.0 * world.config.scale,
             0.5,
             graphics::WHITE,
         )?;
@@ -241,8 +242,8 @@ impl scene::Scene<World, input::Event> for FieldScene {
             ctx,
             &circle,
             (Point2::new(
-                WINDOW_WIDTH as f32 / 2.0,
-                WINDOW_HEIGHT as f32 / 2.0,
+                window_width as f32 / 2.0,
+                window_height as f32 / 2.0,
             ),),
         )?;
 
@@ -253,7 +254,7 @@ impl scene::Scene<World, input::Event> for FieldScene {
         "FieldScene"
     }
 
-    fn input(&mut self, _world: &mut World, event: input::Event, started: bool) {
+    fn input(&mut self, world: &mut World, event: input::Event, started: bool) {
         debug!("Input: {:?} {}", event, started);
 
         if started {
@@ -282,7 +283,8 @@ impl scene::Scene<World, input::Event> for FieldScene {
             };
 
             if reset_transform {
-                self.transform = vec![None; WINDOW_WIDTH * WINDOW_HEIGHT];
+                let (window_width, window_height) = world.config.get_window_size();
+                self.transform = vec![None; window_width * window_height];
             }
         }
     }

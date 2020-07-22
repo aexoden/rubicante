@@ -16,15 +16,14 @@ mod input;
 mod scenes;
 mod world;
 
-pub(crate) const WINDOW_WIDTH: usize = 896;
-pub(crate) const WINDOW_HEIGHT: usize = 672;
-
 pub fn run(config: config::Config) -> GameResult {
+    let (window_width, window_height) = config.get_window_size();
+
     let (ctx, event_loop) =
         &mut ggez::ContextBuilder::new("calcabrina", "Jason Lynch <jason@calindora.com>")
             .window_setup(conf::WindowSetup::default().title("Calcabrina"))
             .window_mode(
-                conf::WindowMode::default().dimensions(WINDOW_WIDTH as f32, WINDOW_HEIGHT as f32),
+                conf::WindowMode::default().dimensions(window_width as f32, window_height as f32),
             )
             .build()?;
 
@@ -48,7 +47,7 @@ impl MainState {
         info!("ROM title: {}", rom.title());
         info!("ROM description: {}", rom.description());
 
-        let world = world::World::new(&rom);
+        let world = world::World::new(config, &rom);
 
         let mut scenes = scenes::Stack::new(ctx, world);
 
