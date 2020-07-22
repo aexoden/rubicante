@@ -253,35 +253,37 @@ impl scene::Scene<World, input::Event> for FieldScene {
         "FieldScene"
     }
 
-    fn input(&mut self, _world: &mut World, event: input::Event, _started: bool) {
-        info!("Input: {:?}", event);
+    fn input(&mut self, _world: &mut World, event: input::Event, started: bool) {
+        info!("Input: {:?} {}", event, started);
 
-        let reset_transform = match event {
-            input::Event::Button(input::Button::ZoomIn) => {
-                self.zoom -= 1.0;
-                true
-            }
-            input::Event::Button(input::Button::ZoomOut) => {
-                self.zoom += 1.0;
-                true
-            }
-            input::Event::Button(input::Button::RotatePlus) => {
-                self.theta += std::f32::consts::PI / 64.0;
-                true
-            }
-            input::Event::Button(input::Button::RotateMinus) => {
-                self.theta -= std::f32::consts::PI / 64.0;
-                true
-            }
-            input::Event::Button(input::Button::Quit) => {
-                self.done = true;
-                false
-            }
-            _ => false,
-        };
+        if started {
+            let reset_transform = match event {
+                input::Event::Button(input::Button::ZoomIn) => {
+                    self.zoom -= 1.0;
+                    true
+                }
+                input::Event::Button(input::Button::ZoomOut) => {
+                    self.zoom += 1.0;
+                    true
+                }
+                input::Event::Button(input::Button::RotatePlus) => {
+                    self.theta += std::f32::consts::PI / 64.0;
+                    true
+                }
+                input::Event::Button(input::Button::RotateMinus) => {
+                    self.theta -= std::f32::consts::PI / 64.0;
+                    true
+                }
+                input::Event::Button(input::Button::Quit) => {
+                    self.done = true;
+                    false
+                }
+                _ => false,
+            };
 
-        if reset_transform {
-            self.transform = vec![None; WINDOW_WIDTH * WINDOW_HEIGHT];
+            if reset_transform {
+                self.transform = vec![None; WINDOW_WIDTH * WINDOW_HEIGHT];
+            }
         }
     }
 }
