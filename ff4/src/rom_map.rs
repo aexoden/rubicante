@@ -44,6 +44,21 @@ pub(crate) mod record {
         address: 0x1D8000,
         length: 0x2000,
     };
+
+    pub const TITLE_TILES: Record = Record {
+        address: 0x08C000,
+        length: 0x2000,
+    };
+
+    pub const TITLE_TILEMAP: Record = Record {
+        address: 0x08E000,
+        length: 0x800,
+    };
+
+    pub const TITLE_PALETTE: Record = Record {
+        address: 0x08E800,
+        length: 0x100,
+    };
 }
 
 const HASH_USA: &str = "680535dc1c4196c53b40dc9c2c9bc159a77802ab8d4b474bef5dc0281c15ad06";
