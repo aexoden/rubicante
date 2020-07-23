@@ -19,6 +19,11 @@ mod world;
 pub fn run(config: config::Config) -> GameResult {
     let (window_width, window_height) = config.get_window_size();
 
+    info!(
+        "Calculated window size: {} x {}",
+        window_width, window_height
+    );
+
     let (ctx, event_loop) =
         &mut ggez::ContextBuilder::new("calcabrina", "Jason Lynch <jason@calindora.com>")
             .window_setup(conf::WindowSetup::default().title("Calcabrina"))

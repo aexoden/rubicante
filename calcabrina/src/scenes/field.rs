@@ -78,10 +78,10 @@ impl FieldScene {
 
         let mut img = vec![0; window_width * window_height * 4];
 
-        let x_scale_factor = window_width as f32 / base_window_width as f32;
-        let y_scale_factor = window_height as f32 / base_window_height as f32;
+        let x_scale_factor = window_width as f32 / base_window_width;
+        let y_scale_factor = window_height as f32 / base_window_height;
 
-        let focal_distance = (base_window_height as f32 / FIELD_OF_VIEW.tan()) / 2.0;
+        let focal_distance = (base_window_height / FIELD_OF_VIEW.tan()) / 2.0;
 
         let (scroll_x, scroll_y) = get_direction_delta(self.movement_direction);
 
@@ -115,11 +115,11 @@ impl FieldScene {
                 {
                     Some((target_x, target_y)) => (target_x, target_y),
                     None => {
-                        let x = ((window_x as f32 + 0.5) / x_scale_factor)
-                            - (base_window_width as f32) / 2.0;
+                        let x =
+                            ((window_x as f32 + 0.5) / x_scale_factor) - base_window_width / 2.0;
 
-                        let y = ((window_y as f32 + 0.5) / y_scale_factor)
-                            - (base_window_height as f32) / 2.0;
+                        let y =
+                            ((window_y as f32 + 0.5) / y_scale_factor) - base_window_height / 2.0;
 
                         let alpha = (x / focal_distance).atan();
                         let beta = (y / focal_distance).atan();
@@ -283,6 +283,7 @@ impl scene::Scene<World, input::Event> for FieldScene {
             };
 
             if reset_transform {
+                debug!("Zoom: {}, Theta: {}", self.zoom, self.theta);
                 let (window_width, window_height) = world.config.get_window_size();
                 self.transform = vec![None; window_width * window_height];
             }
