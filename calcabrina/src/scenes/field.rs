@@ -69,9 +69,7 @@ impl FieldScene {
             zoom: 0.0,
         }
     }
-}
 
-impl FieldScene {
     fn draw_outdoor_map(&mut self, world: &mut World, ctx: &mut Context) -> GameResult {
         let (base_window_width, base_window_height) = world.config.get_base_window_size();
         let (window_width, window_height) = world.config.get_window_size();

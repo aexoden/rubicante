@@ -1,4 +1,5 @@
 use clap::Clap;
+use ggez_goodies::{Point2, Vector2};
 
 #[derive(Clap)]
 #[clap(version = "0.1.0", author = "Jason Lynch <jason@calindora.com>")]
@@ -42,5 +43,31 @@ impl Config {
                 (base_height * self.scale) as usize,
             )
         }
+    }
+
+    pub fn get_scale_vector(&self) -> Vector2 {
+        let (base_window_width, base_window_height) = self.get_base_window_size();
+        let (window_width, window_height) = self.get_window_size();
+
+        Vector2::new(
+            window_width as f32 / base_window_width,
+            window_height as f32 / base_window_height,
+        )
+    }
+
+    pub fn get_standard_offset(&self) -> Point2 {
+        let (window_width, window_height) = self.get_window_size();
+        let scale = self.get_scale_vector();
+
+        let aspect = if self.incorrect_aspect {
+            8.0 / 7.0
+        } else {
+            4.0 / 3.0
+        };
+
+        let x_offset =
+            (window_width as f32 - (window_height as f32 * aspect)) / 2.0 + 8.0 * scale.x;
+
+        Point2::new(x_offset, 8.0 * scale.y)
     }
 }

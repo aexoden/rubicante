@@ -7,6 +7,7 @@ pub enum Button {
     ZoomOut,
     RotatePlus,
     RotateMinus,
+    Confirm,
     Quit,
 }
 
@@ -31,4 +32,5 @@ pub fn create_input_binding() -> input::InputBinding<Axis, Button> {
         .bind_key_to_button(KeyCode::A, Button::RotatePlus)
         .bind_key_to_button(KeyCode::S, Button::RotateMinus)
         .bind_key_to_button(KeyCode::Escape, Button::Quit)
+        .bind_key_to_button(KeyCode::Return, Button::Confirm)
 }

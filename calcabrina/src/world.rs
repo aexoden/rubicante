@@ -10,11 +10,12 @@ pub struct World {
     pub x: u8,
     pub y: u8,
     pub map: map::Map,
+    pub rom: rom::Rom,
     pub tileset: map::OutdoorTileset,
 }
 
 impl World {
-    pub fn new(config: config::Config, rom: &rom::Rom) -> Self {
+    pub fn new(config: config::Config, rom: rom::Rom) -> Self {
         let map = map::Map::new_outdoor(&rom, map::OutdoorMap::Overworld);
         let tileset = map::OutdoorTileset::new(&rom, map::OutdoorMap::Overworld);
 
@@ -24,6 +25,7 @@ impl World {
             x: 36,
             y: 83,
             map,
+            rom,
             tileset,
         }
     }

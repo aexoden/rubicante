@@ -52,11 +52,11 @@ impl MainState {
         info!("ROM title: {}", rom.title());
         info!("ROM description: {}", rom.description());
 
-        let world = world::World::new(config, &rom);
+        let world = world::World::new(config, rom);
 
         let mut scenes = scenes::Stack::new(ctx, world);
 
-        let scene = Box::new(scenes::field::FieldScene::new(ctx, &mut scenes.world));
+        let scene = Box::new(scenes::title::TitleScene::new(ctx, &mut scenes.world));
         scenes.push(scene);
 
         Self {
