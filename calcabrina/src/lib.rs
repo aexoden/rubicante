@@ -78,6 +78,7 @@ impl event::EventHandler for MainState {
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
         graphics::clear(ctx, graphics::Color::from((0.0, 0.0, 0.0, 0.0)));
         self.scenes.draw(ctx);
+        graphics::set_window_title(ctx, &format!("Calcabrina - {:.0} FPS", timer::fps(ctx)));
         graphics::present(ctx)
     }
 
