@@ -10,6 +10,11 @@ pub(crate) mod record {
         length: 0x10,
     };
 
+    pub const WATERFALL_ANIMATION_SEQUENCE: Record = Record {
+        address: 0x008E7C,
+        length: 0x10,
+    };
+
     pub const GAME_TITLE: Record = Record {
         address: 0x00FFC0,
         length: 21,
