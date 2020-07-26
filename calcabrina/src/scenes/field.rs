@@ -15,7 +15,9 @@ use crate::world::World;
 
 const FIELD_OF_VIEW: f32 = std::f32::consts::PI / 4.0;
 
+const WATERFALL_TILE_INDEX: usize = 0x7A;
 const OCEAN_TILE_INDEX: usize = 0x80;
+
 const TILE_SIZE: usize = 8 * 8;
 const NUMBER_OF_TILES: usize = 256;
 
@@ -96,6 +98,7 @@ impl FieldScene {
             &world.rom,
             usize::try_from(self.frame_counter >> 1).unwrap(),
         );
+
         let tile_index = OCEAN_TILE_INDEX + tile_offset;
 
         let last_value = self.tile_cache.tiles[tile_index + 1][line * 8 + 7];
@@ -116,10 +119,40 @@ impl FieldScene {
         self.tile_cache.tiles[tile_index][line * 8] = last_value;
     }
 
+    fn animate_waterfall_tiles(&mut self, world: &mut World) {
+        let (tile_offset, column) = misc::get_waterfall_animation_column(
+            &world.rom,
+            usize::try_from(self.frame_counter).unwrap(),
+        );
+
+        let tile_index = WATERFALL_TILE_INDEX + tile_offset;
+
+        for _ in 0..2 {
+            let last_value = self.tile_cache.tiles[tile_index + 2][column + 7 * 8];
+
+            for row in (0..7).rev() {
+                self.tile_cache.tiles[tile_index + 2][column + (row + 1) * 8] =
+                    self.tile_cache.tiles[tile_index + 2][column + row * 8];
+            }
+
+            self.tile_cache.tiles[tile_index + 2][column] =
+                self.tile_cache.tiles[tile_index][column + 7 * 8];
+
+            for row in (0..7).rev() {
+                self.tile_cache.tiles[tile_index][column + (row + 1) * 8] =
+                    self.tile_cache.tiles[tile_index][column + row * 8];
+            }
+
+            self.tile_cache.tiles[tile_index][column] = last_value;
+        }
+    }
+
     fn animate_overworld_water_tiles(&mut self, world: &mut World) {
         if self.frame_counter % 2 == 0 {
             self.animate_ocean_tiles(world);
         }
+
+        self.animate_waterfall_tiles(world);
     }
 
     fn draw_outdoor_map(&mut self, world: &mut World, ctx: &mut Context) -> GameResult {
