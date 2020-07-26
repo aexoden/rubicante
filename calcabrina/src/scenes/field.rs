@@ -307,6 +307,8 @@ impl scene::Scene<World, input::Event> for FieldScene {
             ggez::event::quit(ctx);
         }
 
+        self.animate_overworld_water_tiles(world);
+
         self.frame_counter += 1;
 
         scene::SceneSwitch::None
@@ -315,7 +317,6 @@ impl scene::Scene<World, input::Event> for FieldScene {
     fn draw(&mut self, world: &mut World, ctx: &mut ggez::Context) -> GameResult {
         let (window_width, window_height) = world.config.get_window_size();
 
-        self.animate_overworld_water_tiles(world);
         self.draw_outdoor_map(world, ctx)?;
 
         let circle = graphics::Mesh::new_circle(
