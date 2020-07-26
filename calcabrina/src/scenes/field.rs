@@ -7,6 +7,7 @@ use ggez_goodies::Point2;
 use log::debug;
 
 use ff4::map;
+use ff4::misc;
 
 use crate::input;
 use crate::scenes;
@@ -14,7 +15,9 @@ use crate::world::World;
 
 const FIELD_OF_VIEW: f32 = std::f32::consts::PI / 4.0;
 
-const TILE_ARRAY_SIZE: usize = 16 * 16;
+const OCEAN_TILE_INDEX: usize = 0x80;
+const TILE_SIZE: usize = 8 * 8;
+const NUMBER_OF_TILES: usize = 256;
 
 #[derive(Copy, Clone)]
 enum Direction {
@@ -25,28 +28,45 @@ enum Direction {
 }
 
 struct TileCache {
-    pub tiles: [[u8; TILE_ARRAY_SIZE]; 128],
+    pub tiles: [[u8; TILE_SIZE]; NUMBER_OF_TILES],
 }
 
 impl TileCache {
     pub fn new_outdoor(tileset: &map::OutdoorTileset) -> Self {
-        let mut tiles = [[0; TILE_ARRAY_SIZE]; 128];
+        let mut tiles = [[0; TILE_SIZE]; NUMBER_OF_TILES];
 
-        for (index, mut tile) in tiles.iter_mut().enumerate() {
-            let composition = &tileset.composition[index];
-
-            render_outdoor_tile(&mut tile, &tileset, composition.upper_left, 0, 0);
-            render_outdoor_tile(&mut tile, &tileset, composition.upper_right, 8, 0);
-            render_outdoor_tile(&mut tile, &tileset, composition.lower_left, 0, 8);
-            render_outdoor_tile(&mut tile, &tileset, composition.lower_right, 8, 8);
+        for (tile_index, tile) in tiles.iter_mut().enumerate() {
+            for (pixel_index, value) in tileset.tiles[tile_index].pixels.iter().enumerate() {
+                tile[pixel_index] = *value;
+            }
         }
 
         Self { tiles }
+    }
+
+    pub fn get_composite_pixel(
+        &self,
+        composition: &map::TileComposition,
+        x: usize,
+        y: usize,
+    ) -> u8 {
+        let index = if x < 8 && y < 8 {
+            composition.upper_left
+        } else if x >= 8 && y < 8 {
+            composition.upper_right
+        } else if x < 8 && y >= 8 {
+            composition.lower_left
+        } else {
+            composition.lower_right
+        };
+
+        self.tiles[index][x % 8 + y % 8 * 8]
     }
 }
 
 pub struct FieldScene {
     done: bool,
+    frame_counter: u32,
     movement_direction: Direction,
     movement_frames: i8,
     theta: f32,
@@ -61,12 +81,44 @@ impl FieldScene {
 
         FieldScene {
             done: false,
+            frame_counter: 0,
             movement_direction: Direction::Up,
             movement_frames: 0,
             tile_cache: TileCache::new_outdoor(&world.tileset),
             theta: 0.0,
             transform: vec![None; window_width * window_height],
             zoom: 0.0,
+        }
+    }
+
+    fn animate_ocean_tiles(&mut self, world: &mut World) {
+        let (tile_offset, line) = misc::get_ocean_animation_line(
+            &world.rom,
+            usize::try_from(self.frame_counter >> 1).unwrap(),
+        );
+        let tile_index = OCEAN_TILE_INDEX + tile_offset;
+
+        let last_value = self.tile_cache.tiles[tile_index + 1][line * 8 + 7];
+
+        for i in (0..7).rev() {
+            self.tile_cache.tiles[tile_index + 1][line * 8 + i + 1] =
+                self.tile_cache.tiles[tile_index + 1][line * 8 + i];
+        }
+
+        self.tile_cache.tiles[tile_index + 1][line * 8] =
+            self.tile_cache.tiles[tile_index][line * 8 + 7];
+
+        for i in (0..7).rev() {
+            self.tile_cache.tiles[tile_index][line * 8 + i + 1] =
+                self.tile_cache.tiles[tile_index][line * 8 + i];
+        }
+
+        self.tile_cache.tiles[tile_index][line * 8] = last_value;
+    }
+
+    fn animate_overworld_water_tiles(&mut self, world: &mut World) {
+        if self.frame_counter % 2 == 0 {
+            self.animate_ocean_tiles(world);
         }
     }
 
@@ -152,8 +204,11 @@ impl FieldScene {
                     world.map.tilemap[(target_x / 16) + (target_y / 16) * world.map.width],
                 );
 
-                let palette_index =
-                    self.tile_cache.tiles[tile_index][target_x % 16 + target_y % 16 * 16];
+                let palette_index = self.tile_cache.get_composite_pixel(
+                    &world.tileset.composition[tile_index],
+                    target_x % 16,
+                    target_y % 16,
+                );
 
                 let color = world.tileset.palette[usize::from(palette_index)];
 
@@ -219,12 +274,15 @@ impl scene::Scene<World, input::Event> for FieldScene {
             ggez::event::quit(ctx);
         }
 
+        self.frame_counter += 1;
+
         scene::SceneSwitch::None
     }
 
     fn draw(&mut self, world: &mut World, ctx: &mut ggez::Context) -> GameResult {
         let (window_width, window_height) = world.config.get_window_size();
 
+        self.animate_overworld_water_tiles(world);
         self.draw_outdoor_map(world, ctx)?;
 
         let circle = graphics::Mesh::new_circle(
@@ -295,19 +353,5 @@ fn get_direction_delta(direction: Direction) -> (i32, i32) {
         Direction::Down => (0, 1),
         Direction::Left => (-1, 0),
         Direction::Right => (1, 0),
-    }
-}
-
-fn render_outdoor_tile(
-    tile: &mut [u8; TILE_ARRAY_SIZE],
-    tileset: &map::OutdoorTileset,
-    tile_index: usize,
-    base_x: usize,
-    base_y: usize,
-) {
-    for (i, color) in tileset.tiles[tile_index].pixels.iter().enumerate() {
-        let x = base_x + i % 8;
-        let y = base_y + i / 8;
-        tile[y * 16 + x] = *color;
     }
 }
