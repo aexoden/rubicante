@@ -53,7 +53,7 @@ impl Rom {
             .collect()
     }
 
-    pub(crate) fn read_u8(&self, address: usize) -> u8 {
+    pub fn read_u8(&self, address: usize) -> u8 {
         self.data[address_to_rom_offset(address)]
     }
 
