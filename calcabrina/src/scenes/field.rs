@@ -179,13 +179,13 @@ impl FieldScene {
         };
 
         let center_x = isize::try_from(
-            (i32::try_from(world.x).unwrap() * 16 + 8 - scroll_x)
+            (i32::try_from(world.player_position.x).unwrap() * 16 + 8 - scroll_x)
                 .rem_euclid(i32::try_from(world.map.width).unwrap() * 16),
         )
         .unwrap();
 
         let center_y = isize::try_from(
-            (i32::try_from(world.y).unwrap() * 16 + 8 - scroll_y)
+            (i32::try_from(world.player_position.y).unwrap() * 16 + 8 - scroll_y)
                 .rem_euclid(i32::try_from(world.map.height).unwrap() * 16),
         )
         .unwrap();
@@ -268,14 +268,14 @@ impl scene::Scene<World, input::Event> for FieldScene {
             if self.movement_frames == 0 {
                 let (delta_x, delta_y) = get_direction_delta(self.movement_direction);
 
-                world.x = u8::try_from(
-                    (i32::from(world.x) + delta_x)
+                world.player_position.x = u8::try_from(
+                    (i32::from(world.player_position.x) + delta_x)
                         .rem_euclid(i32::try_from(world.map.width).unwrap()),
                 )
                 .unwrap();
 
-                world.y = u8::try_from(
-                    (i32::from(world.y) + delta_y)
+                world.player_position.y = u8::try_from(
+                    (i32::from(world.player_position.y) + delta_y)
                         .rem_euclid(i32::try_from(world.map.height).unwrap()),
                 )
                 .unwrap();

@@ -1,5 +1,10 @@
 use fern::colors;
 
+pub struct Position {
+    pub x: u8,
+    pub y: u8,
+}
+
 pub fn setup_logger() -> Result<(), fern::InitError> {
     let colors = colors::ColoredLevelConfig::default()
         .info(colors::Color::Green)
