@@ -13,6 +13,7 @@ pub mod config;
 pub mod util;
 
 mod input;
+mod map;
 mod scenes;
 mod world;
 

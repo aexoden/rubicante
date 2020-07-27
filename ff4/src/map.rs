@@ -3,11 +3,11 @@ use image::Rgba;
 use super::rom;
 use super::rom_map::record;
 
-const PIXELS_PER_TILE: usize = 64;
-const COMPOSED_TILES_PER_TILESET: usize = 128;
-const TILES_PER_TILESET: usize = 256;
+pub const PIXELS_PER_TILE: usize = 64;
+pub const COMPOSED_TILES_PER_TILESET: usize = 128;
+pub const TILES_PER_TILESET: usize = 256;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq)]
 pub enum OutdoorMap {
     Overworld,
     Underworld,

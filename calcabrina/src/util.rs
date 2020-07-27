@@ -1,8 +1,35 @@
 use fern::colors;
 
+#[derive(Copy, Clone, Debug)]
+pub enum Direction {
+    Up,
+    Right,
+    Down,
+    Left,
+}
+
+#[derive(Copy, Clone, Debug)]
 pub struct Position {
     pub x: u8,
     pub y: u8,
+}
+
+#[derive(Copy, Clone, Debug)]
+pub enum Movement {
+    Direction {
+        direction: Direction,
+        frame_counter: usize,
+    },
+    None,
+}
+
+pub fn get_direction_delta(direction: Direction) -> (i32, i32) {
+    match direction {
+        Direction::Up => (0, -1),
+        Direction::Down => (0, 1),
+        Direction::Left => (-1, 0),
+        Direction::Right => (1, 0),
+    }
 }
 
 pub fn setup_logger() -> Result<(), fern::InitError> {
