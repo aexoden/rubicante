@@ -7,6 +7,58 @@ pub const PIXELS_PER_TILE: usize = 64;
 pub const COMPOSED_TILES_PER_TILESET: usize = 128;
 pub const TILES_PER_TILESET: usize = 256;
 
+#[derive(Copy, Clone)]
+pub struct OutdoorTileProperties {
+    pub can_walk_low: bool,
+    yellow_chocobo: bool,
+    black_chocobo: bool,
+    pub forest: bool,
+    hovercraft: bool,
+    airship: bool,
+    can_walk_high: bool,
+    big_whale: bool,
+    hide_lower: bool,
+    can_land_airship: bool,
+    encounters: bool,
+    trigger: bool,
+    battle_background: usize,
+}
+
+impl OutdoorTileProperties {
+    pub fn new(data: &[u8]) -> Self {
+        let can_walk_low = data[0] & 0x01 > 0;
+        let yellow_chocobo = data[0] & 0x02 > 0;
+        let black_chocobo = data[0] & 0x04 > 0;
+        let forest = data[0] & 0x08 > 0;
+        let hovercraft = data[0] & 0x10 > 0;
+        let airship = data[0] & 0x20 > 0;
+        let can_walk_high = data[0] & 0x40 > 0;
+        let big_whale = data[0] & 0x80 > 0;
+
+        let battle_background = usize::from(data[1] & 0x07);
+        let hide_lower = data[1] & 0x08 > 0;
+        let can_land_airship = data[1] & 0x10 > 0;
+        let encounters = data[1] & 0x40 > 0;
+        let trigger = data[1] & 0x80 > 0;
+
+        Self {
+            can_walk_low,
+            yellow_chocobo,
+            black_chocobo,
+            forest,
+            hovercraft,
+            airship,
+            can_walk_high,
+            big_whale,
+            hide_lower,
+            can_land_airship,
+            encounters,
+            trigger,
+            battle_background,
+        }
+    }
+}
+
 #[derive(Copy, Clone, PartialEq)]
 pub enum OutdoorMap {
     Overworld,
@@ -90,15 +142,12 @@ pub struct OutdoorTileset {
     pub composition: Vec<TileComposition>,
     pub palette: Vec<Rgba<u8>>,
     pub tiles: Vec<OutdoorTile>,
+    pub properties: Vec<OutdoorTileProperties>,
 }
 
 impl OutdoorTileset {
     pub fn new(rom: &rom::Rom, map: OutdoorMap) -> OutdoorTileset {
-        let map_index = match map {
-            OutdoorMap::Overworld => 0,
-            OutdoorMap::Underworld => 1,
-            OutdoorMap::Moon => 2,
-        };
+        let map_index = map as usize;
 
         let upper_values = rom.read_bytes(record::OUTDOOR_TILESET_UPPER_VALUES, map_index);
         let lower_values = rom.read_bytes(record::OUTDOOR_TILESET_LOWER_VALUES, map_index);
@@ -139,10 +188,17 @@ impl OutdoorTileset {
             })
             .collect();
 
+        let properties_data = rom.read_bytes(record::OUTDOOR_TILE_PROPERTIES, map_index);
+
+        let properties = (0..COMPOSED_TILES_PER_TILESET)
+            .map(|i| OutdoorTileProperties::new(&properties_data[i * 2..(i + 1) * 2]))
+            .collect();
+
         OutdoorTileset {
             composition,
             palette: rom.read_palette(record::OUTDOOR_TILESET_PALETTE, map_index, 1),
             tiles,
+            properties,
         }
     }
 }

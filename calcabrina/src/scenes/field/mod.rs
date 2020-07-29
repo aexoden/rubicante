@@ -23,9 +23,11 @@ pub struct FieldScene {
 
 impl FieldScene {
     pub fn new(_ctx: &mut Context, world: &mut World) -> Self {
+        let map = map::Map::new_outdoor(&world.config, &world.rom, world.map_index);
+
         FieldScene {
             done: false,
-            map: map::Map::new_outdoor(&world.config, &world.rom, world.map_index),
+            map,
             player_sprite: sprite::FieldSprite::new_player(&world.rom, 0),
         }
     }
@@ -62,28 +64,37 @@ impl FieldScene {
             let horizontal = world.input.get_axis_raw(input::Axis::Horizontal);
 
             if vertical.abs() > 0.5 || horizontal.abs() > 0.5 {
-                world.player_movement = Movement::Direction {
-                    direction: if horizontal.abs() > 0.5 {
-                        match horizontal {
-                            x if x < -0.5 => Direction::Left,
-                            _ => Direction::Right,
-                        }
-                    } else {
-                        match vertical {
-                            y if y < -0.5 => Direction::Up,
-                            _ => Direction::Down,
-                        }
-                    },
-                    frame_counter: 16,
+                let direction = if horizontal.abs() > 0.5 {
+                    match horizontal {
+                        x if x < -0.5 => Direction::Left,
+                        _ => Direction::Right,
+                    }
+                } else {
+                    match vertical {
+                        y if y < -0.5 => Direction::Up,
+                        _ => Direction::Down,
+                    }
                 };
 
-                if let Movement::Direction {
-                    direction,
-                    frame_counter: _,
-                } = world.player_movement
-                {
-                    world.player_pose = sprite::Pose::Direction(direction);
+                let current_tile_properties = self.map.get_tile_properties(
+                    world.player_position.x,
+                    world.player_position.y,
+                    None,
+                );
+                let adjacent_tile_properties = self.map.get_tile_properties(
+                    world.player_position.x,
+                    world.player_position.y,
+                    Some(direction),
+                );
+
+                if current_tile_properties.can_walk_low == adjacent_tile_properties.can_walk_low {
+                    world.player_movement = Movement::Direction {
+                        direction,
+                        frame_counter: 16,
+                    };
                 }
+
+                world.player_pose = sprite::Pose::Direction(direction);
             }
         }
     }
@@ -121,7 +132,7 @@ impl scene::Scene<World, input::Event> for FieldScene {
         let params = graphics::DrawParam::default().dest(Point2::new(0.0, 0.0));
         graphics::draw(ctx, &map_img, params)?;
 
-        let player_sprite_img = self.player_sprite.render(world, ctx)?;
+        let player_sprite_img = self.player_sprite.render(world, &self.map, ctx)?;
         let coordinates = self.player_sprite.get_draw_coordinates(world);
         let params = graphics::DrawParam::default()
             .dest(coordinates)

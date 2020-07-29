@@ -60,6 +60,11 @@ pub(crate) mod record {
         length: 0x2000,
     };
 
+    pub const OUTDOOR_TILE_PROPERTIES: Record = Record {
+        address: 0x148A80,
+        length: 0x100,
+    };
+
     pub const FIELD_SPRITE_PALETTE_INDEX_PLAYER: Record = Record {
         address: 0x15B2FA,
         length: 0x01,

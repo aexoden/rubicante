@@ -104,7 +104,12 @@ impl FieldSprite {
         )
     }
 
-    pub fn render(&self, world: &World, ctx: &mut Context) -> GameResult<graphics::Image> {
+    pub fn render(
+        &self,
+        world: &World,
+        map: &super::map::Map,
+        ctx: &mut Context,
+    ) -> GameResult<graphics::Image> {
         let mut frame_index = 2 * match world.player_pose {
             Pose::Direction(Direction::Up) => 0,
             Pose::Direction(Direction::Right) => 1,
@@ -126,6 +131,9 @@ impl FieldSprite {
             }
         }
 
+        let tile_properties =
+            map.get_tile_properties(world.player_position.x, world.player_position.y, None);
+
         let frame = &self.frames[frame_index];
         let mut img = vec![0u8; 16 * 16 * 4];
 
@@ -134,7 +142,11 @@ impl FieldSprite {
             img[i * 4] = color[0];
             img[i * 4 + 1] = color[1];
             img[i * 4 + 2] = color[2];
-            img[i * 4 + 3] = if *palette_index == 0 { 0 } else { 255 };
+            img[i * 4 + 3] = if *palette_index == 0 || i >= 128 && tile_properties.forest {
+                0
+            } else {
+                255
+            };
         }
 
         let mut img = graphics::Image::from_rgba8(ctx, 16, 16, &img[..])?;

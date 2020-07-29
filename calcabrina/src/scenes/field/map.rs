@@ -65,6 +65,47 @@ impl Map {
         self.map.width
     }
 
+    pub fn tilemap(&self) -> &Vec<u8> {
+        &self.map.tilemap
+    }
+
+    pub fn get_tile_properties(
+        &self,
+        x: u8,
+        y: u8,
+        direction: Option<util::Direction>,
+    ) -> &map::OutdoorTileProperties {
+        let x_delta = match direction {
+            Some(util::Direction::Up) | Some(util::Direction::Down) | None => 0,
+            Some(util::Direction::Right) => 1,
+            Some(util::Direction::Left) => -1,
+        };
+
+        let y_delta = match direction {
+            Some(util::Direction::Left) | Some(util::Direction::Right) | None => 0,
+            Some(util::Direction::Up) => -1,
+            Some(util::Direction::Down) => 1,
+        };
+
+        let x = match self.index {
+            OutdoorMap::Overworld | OutdoorMap::Underworld | OutdoorMap::Moon => usize::try_from(
+                (i32::from(x) + x_delta).rem_euclid(i32::try_from(self.width()).unwrap()),
+            )
+            .unwrap(),
+        };
+
+        let y = match self.index {
+            OutdoorMap::Overworld | OutdoorMap::Underworld | OutdoorMap::Moon => usize::try_from(
+                (i32::from(y) + y_delta).rem_euclid(i32::try_from(self.width()).unwrap()),
+            )
+            .unwrap(),
+        };
+
+        let tile_index = usize::from(self.tilemap()[x + y * self.width()]);
+
+        &self.tileset.properties[tile_index]
+    }
+
     pub fn render(
         &mut self,
         world: &World,
