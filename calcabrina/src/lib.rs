@@ -12,8 +12,8 @@ use ff4::rom;
 pub mod config;
 pub mod util;
 
+mod character;
 mod input;
-mod map;
 mod scenes;
 mod world;
 

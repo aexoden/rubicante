@@ -32,6 +32,50 @@ pub fn get_direction_delta(direction: Direction) -> (i32, i32) {
     }
 }
 
+pub struct PixelBuffer {
+    pub pixels: Vec<u8>,
+    pub width: usize,
+    pub height: usize,
+}
+
+impl PixelBuffer {
+    pub fn new(width: usize, height: usize) -> Self {
+        Self {
+            pixels: vec![0; width * height],
+            width,
+            height,
+        }
+    }
+
+    pub fn render_tile(
+        &mut self,
+        tile: &[u8],
+        hflip: bool,
+        vflip: bool,
+        base_x: usize,
+        base_y: usize,
+    ) {
+        println!("{}, {}, {}, {}", base_x, base_y, hflip, vflip);
+        for (i, pixel) in tile.iter().enumerate() {
+            let x = if hflip {
+                base_x + 7 - (i % 8)
+            } else {
+                base_x + i % 8
+            };
+
+            let y = if vflip {
+                base_y + 7 - (i / 8)
+            } else {
+                base_y + i / 8
+            };
+
+            let index = x + y * self.width;
+
+            self.pixels[index] = *pixel;
+        }
+    }
+}
+
 pub fn setup_logger() -> Result<(), fern::InitError> {
     let colors = colors::ColoredLevelConfig::default()
         .info(colors::Color::Green)

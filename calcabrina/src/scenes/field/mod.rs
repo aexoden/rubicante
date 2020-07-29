@@ -7,15 +7,18 @@ use ggez_goodies::Point2;
 use log::debug;
 
 use crate::input;
-use crate::map;
 use crate::scenes;
 use crate::util;
 use crate::util::{Direction, Movement};
 use crate::world::World;
 
+pub mod map;
+pub mod sprite;
+
 pub struct FieldScene {
     done: bool,
     map: map::Map,
+    player_sprite: sprite::FieldSprite,
 }
 
 impl FieldScene {
@@ -23,6 +26,7 @@ impl FieldScene {
         FieldScene {
             done: false,
             map: map::Map::new_outdoor(&world.config, &world.rom, world.map_index),
+            player_sprite: sprite::FieldSprite::new_player(&world.rom, 0),
         }
     }
 
@@ -71,6 +75,14 @@ impl FieldScene {
                         }
                     },
                     frame_counter: 16,
+                };
+
+                if let Movement::Direction {
+                    direction,
+                    frame_counter: _,
+                } = world.player_movement
+                {
+                    world.player_pose = sprite::Pose::Direction(direction);
                 }
             }
         }
@@ -87,6 +99,17 @@ impl scene::Scene<World, input::Event> for FieldScene {
             self.map = map::Map::new_outdoor(&world.config, &world.rom, world.map_index);
         }
 
+        while world.party[world.player_sprite_index].is_none() {
+            world.player_sprite_index = (world.player_sprite_index + 1) % 5;
+        }
+
+        if let Some(character) = &world.party[world.player_sprite_index] {
+            if self.player_sprite.class != usize::from(character.class) {
+                self.player_sprite =
+                    sprite::FieldSprite::new_player(&world.rom, usize::from(character.class));
+            }
+        }
+
         self.do_player_movement(world);
         self.map.update(world);
 
@@ -94,29 +117,16 @@ impl scene::Scene<World, input::Event> for FieldScene {
     }
 
     fn draw(&mut self, world: &mut World, ctx: &mut Context) -> GameResult {
-        let (window_width, window_height) = world.config.get_window_size();
-
         let map_img = self.map.render(world, ctx)?;
         let params = graphics::DrawParam::default().dest(Point2::new(0.0, 0.0));
         graphics::draw(ctx, &map_img, params)?;
 
-        let circle = graphics::Mesh::new_circle(
-            ctx,
-            graphics::DrawMode::fill(),
-            Point2::new(0.0, 0.0),
-            8.0 * world.config.scale,
-            0.5,
-            graphics::WHITE,
-        )?;
-
-        graphics::draw(
-            ctx,
-            &circle,
-            (Point2::new(
-                window_width as f32 / 2.0,
-                window_height as f32 / 2.0,
-            ),),
-        )?;
+        let player_sprite_img = self.player_sprite.render(world, ctx)?;
+        let coordinates = self.player_sprite.get_draw_coordinates(world);
+        let params = graphics::DrawParam::default()
+            .dest(coordinates)
+            .scale(world.config.get_scale_vector());
+        graphics::draw(ctx, &player_sprite_img, params)?;
 
         Ok(())
     }
