@@ -5,6 +5,11 @@ pub(crate) mod record {
         pub length: usize,
     }
 
+    pub const CHARACTER_STATS_INITIAL: Record = Record {
+        address: 0x0FA900,
+        length: 0x20,
+    };
+
     pub const OCEAN_ANIMATION_SEQUENCE: Record = Record {
         address: 0x008E8C,
         length: 0x10,
@@ -53,6 +58,26 @@ pub(crate) mod record {
     pub const OUTDOOR_TILESET_LOWER_VALUES: Record = Record {
         address: 0x1D8000,
         length: 0x2000,
+    };
+
+    pub const FIELD_SPRITE_PALETTE_INDEX_PLAYER: Record = Record {
+        address: 0x15B2FA,
+        length: 0x01,
+    };
+
+    pub const FIELD_SPRITE_PALETTE_PLAYER: Record = Record {
+        address: 0x0D8000,
+        length: 0x10,
+    };
+
+    pub const FIELD_SPRITE_SHEET_PLAYER: Record = Record {
+        address: 0x1B8000,
+        length: 0x0300,
+    };
+
+    pub const FIELD_SPRITE_COMPOSITION_PLAYER: Record = Record {
+        address: 0x15C0C4,
+        length: 0x08,
     };
 
     pub const TITLE_TILES: Record = Record {

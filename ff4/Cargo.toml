@@ -9,4 +9,6 @@ edition = "2018"
 [dependencies]
 hex = "0.4.2"
 image = "0.23.7"
+log = "0.4"
+nom = "5.1.2"
 sha2 = "0.9.1"

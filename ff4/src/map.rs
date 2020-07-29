@@ -1,7 +1,7 @@
 use image::Rgba;
 
-use super::rom;
-use super::rom_map::record;
+use crate::rom;
+use crate::rom_map::record;
 
 pub const PIXELS_PER_TILE: usize = 64;
 pub const COMPOSED_TILES_PER_TILESET: usize = 128;
