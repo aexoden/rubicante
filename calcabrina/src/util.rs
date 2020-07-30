@@ -55,7 +55,6 @@ impl PixelBuffer {
         base_x: usize,
         base_y: usize,
     ) {
-        println!("{}, {}, {}, {}", base_x, base_y, hflip, vflip);
         for (i, pixel) in tile.iter().enumerate() {
             let x = if hflip {
                 base_x + 7 - (i % 8)
