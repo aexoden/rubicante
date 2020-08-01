@@ -2,6 +2,8 @@ use std::convert::TryFrom;
 
 use ggez::graphics;
 use ggez::GameResult;
+use image::GenericImage;
+use image::RgbaImage;
 
 use ff4::map;
 use ff4::misc;
@@ -27,7 +29,7 @@ pub struct Map {
     theta: f32,
     tile_cache: TileCache,
     tileset: ff4::map::OutdoorTileset,
-    transform: Vec<Option<(f32, f32)>>,
+    transform: Vec<Option<(i32, i32)>>,
 }
 
 impl Map {
@@ -114,10 +116,10 @@ impl Map {
         let (base_window_width, base_window_height) = world.config.get_base_window_size();
         let (window_width, window_height) = world.config.get_window_size();
 
-        let mut img = vec![0; window_width * window_height * 4];
-
         let x_scale_factor = window_width as f32 / base_window_width;
         let y_scale_factor = window_height as f32 / base_window_height;
+
+        let mut img = RgbaImage::new(window_width as u32, window_height as u32);
 
         let focal_distance = (base_window_height / FIELD_OF_VIEW.tan()) / 2.0;
 
@@ -143,22 +145,23 @@ impl Map {
             (0, 0)
         };
 
-        let center_x = isize::try_from(
+        let center_x = i32::try_from(
             (i32::try_from(world.player_position.x).unwrap() * 16 + 8 - scroll_x)
                 .rem_euclid(i32::try_from(self.map.width).unwrap() * 16),
         )
         .unwrap();
 
-        let center_y = isize::try_from(
+        let center_y = i32::try_from(
             (i32::try_from(world.player_position.y).unwrap() * 16 + 8 - scroll_y)
                 .rem_euclid(i32::try_from(self.map.height).unwrap() * 16),
         )
         .unwrap();
 
+        let pixel_map_width = self.map.width as i32 * 16;
+        let pixel_map_height = self.map.height as i32 * 16;
+
         for window_y in 0..window_height {
             for window_x in 0..window_width {
-                let index = window_x * 4 + window_y * window_width * 4;
-
                 let (target_x, target_y) = match self.transform[window_x + window_y * window_width]
                 {
                     Some((target_x, target_y)) => (target_x, target_y),
@@ -179,6 +182,9 @@ impl Map {
                             * (target_y * (-self.theta).sin() + focal_distance + self.zoom)
                             / alpha.cos();
 
+                        let target_x = target_x.floor() as i32;
+                        let target_y = target_y.floor() as i32;
+
                         self.transform[window_x + window_y * window_width] =
                             Some((target_x, target_y));
 
@@ -186,21 +192,27 @@ impl Map {
                     }
                 };
 
-                let target_x = usize::try_from(
-                    (target_x.floor() as isize + center_x)
-                        .rem_euclid(isize::try_from(self.map.width).unwrap() * 16),
-                )
-                .unwrap();
+                let target_x = target_x + center_x;
+                let target_y = target_y + center_y;
 
-                let target_y = usize::try_from(
-                    (target_y.floor() as isize + center_y)
-                        .rem_euclid(isize::try_from(self.map.height).unwrap() * 16),
-                )
-                .unwrap();
+                let target_x = if target_x < 0 {
+                    target_x + pixel_map_width
+                } else if target_x >= pixel_map_width {
+                    target_x - pixel_map_width
+                } else {
+                    target_x
+                } as usize;
 
-                let tile_index = usize::from(
-                    self.map.tilemap[(target_x / 16) + (target_y / 16) * self.map.width],
-                );
+                let target_y = if target_y < 0 {
+                    target_y + pixel_map_height
+                } else if target_y >= pixel_map_height {
+                    target_y - pixel_map_height
+                } else {
+                    target_y
+                } as usize;
+
+                let tile_index =
+                    self.map.tilemap[(target_x / 16) + (target_y / 16) * self.map.width] as usize;
 
                 let palette_index = self.tile_cache.get_composite_pixel(
                     &self.tileset.composition[tile_index],
@@ -210,8 +222,8 @@ impl Map {
 
                 let color = self.tileset.palette[usize::from(palette_index)];
 
-                for i in 0..4 {
-                    img[index + i] = color[i];
+                unsafe {
+                    img.unsafe_put_pixel(window_x as u32, window_y as u32, color);
                 }
             }
         }
